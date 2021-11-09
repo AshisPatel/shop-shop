@@ -4,7 +4,7 @@ import { useQuery } from '@apollo/client';
 import { QUERY_CATEGORIES } from '../../utils/queries';
 import { UPDATE_CATEGORIES, UPDATE_CURRENT_CATEGORY } from "../../utils/actions";
 
-function CategoryMenu({ setCategory }) {
+function CategoryMenu() {
 
   // useStoreContext will import global state and dispatch to be able to update the state
   const [state, dispatch] = useStoreContext();
@@ -27,6 +27,13 @@ function CategoryMenu({ setCategory }) {
     // why does this run on dispatch update?
   }, [categoryData, dispatch]);
 
+  const handleClick = (id) => {
+    dispatch({
+      type: UPDATE_CURRENT_CATEGORY,
+      currentCategory: id
+    });
+  };
+
 
   return (
     <div>
@@ -35,7 +42,7 @@ function CategoryMenu({ setCategory }) {
         <button
           key={item._id}
           onClick={() => {
-            setCategory(item._id);
+            handleClick(item._id);
           }}
         >
           {item.name}

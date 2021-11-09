@@ -7,7 +7,7 @@ import spinner from '../../assets/spinner.gif';
 
 import { useStoreContext } from '../../utils/GlobalState';
 import { UPDATE_PRODUCTS } from '../../utils/actions';
-function ProductList({ currentCategory }) {
+function ProductList() {
   const [state, dispatch] = useStoreContext();
   const { currentCategory, products } = state;
 
