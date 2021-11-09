@@ -18,6 +18,8 @@ const StoreProvider = ({ value = [], ...props }) => {
     // It's just formatted as [state, dispatch] = useProductReducer(initialState);
     const [state, dispatch] = useProductReducer({
         products: [],
+        cart: [],
+        cartOpen: false, 
         categories: [],
         currentCategory: ''
     });
