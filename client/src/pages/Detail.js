@@ -19,6 +19,8 @@ function Detail() {
   // Check to see if the products in globalState is not empty
   // If it is not, then find the product that matches the id in the route and set that to the current product so that it will be displayed
   // if the globalState is empty and the query is complete, set the products in the globalState equal to the data from querying our DB
+
+  // products would be empty if this was the first page that a user visited on the webpage ---> why we need to query 
   useEffect(() => {
     if (products.length) {
       setCurrentProduct(products.find(product => product._id === id));
