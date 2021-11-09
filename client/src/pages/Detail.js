@@ -5,20 +5,30 @@ import { useQuery } from '@apollo/client';
 import { QUERY_PRODUCTS } from '../utils/queries';
 import spinner from '../assets/spinner.gif';
 
+import { useStoreContext } from "../utils/GlobalState";
+import { UPDATE_PRODUCTS } from "../utils/actions";
+
 function Detail() {
   const { id } = useParams();
+  const [state, dispatch] = useStoreContext(); 
+  const { products } = state;
+  const { loading, data } = useQuery(QUERY_PRODUCTS);
 
   const [currentProduct, setCurrentProduct] = useState({});
 
-  const { loading, data } = useQuery(QUERY_PRODUCTS);
-
-  const products = data?.products || [];
-
+  // Check to see if the products in globalState is not empty
+  // If it is not, then find the product that matches the id in the route and set that to the current product so that it will be displayed
+  // if the globalState is empty and the query is complete, set the products in the globalState equal to the data from querying our DB
   useEffect(() => {
     if (products.length) {
-      setCurrentProduct(products.find((product) => product._id === id));
+      setCurrentProduct(products.find(product => product._id === id));
+    } else if (data) {
+      dispatch({
+        type: UPDATE_PRODUCTS,
+        products: data.products
+      });
     }
-  }, [products, id]);
+  }, [products, data, dispatch, id]);
 
   return (
     <>
