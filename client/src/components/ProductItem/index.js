@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { pluralize } from "../../utils/helpers";
+import { idbPromise, pluralize } from "../../utils/helpers";
 import { useStoreContext } from "../../utils/GlobalState";
 import { ADD_TO_CART, UPDATE_CART_QUANTITY } from "../../utils/actions";
 
@@ -29,11 +29,21 @@ function ProductItem(item) {
         _id: item._id, 
         purchaseQuantity: itemInCart.purchaseQuantity + 1
       }) 
+      // mimic request but for indexedDB
+      idbPromise('cart', 'put', {
+        ...itemInCart,
+        purchaseQuantity: itemInCart.purchaseQuantity + 1
+      });
       // else add item to card with purchaseQuantity of 1
     } else {
       dispatch({
         type: ADD_TO_CART,
         product: { ...item, purchaseQuantity: 1 }
+      });
+      // mimic request for indexedDB
+      idbPromise('cart', 'put', {
+        ...item, 
+        purchaseQuantity: 1
       });
     }
     

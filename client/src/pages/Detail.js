@@ -59,10 +59,21 @@ function Detail() {
         _id: id,
         purchaseQuantity: itemInCart.purchaseQuantity + 1
       })
+      // pass in a put request to indexedDB to upate the product in the cart store with the updated quantity of the item
+      // The third arguement is the object we are sending to the store, therefore we destructure our itemInCart to contain all the other old parameters, and include our new purchaseQuantity key
+      idbPromise('cart', 'put', {
+        ...itemInCart,
+        purchaseQuantity: itemInCart.purchaseQuantity + 1
+      });
     } else {
       dispatch({
         type: ADD_TO_CART,
         product: { ...currentProduct, purchaseQuantity: 1 }
+      });
+      // if product is not in cart, add the currentProduct with a purchaseQuantity of 1
+      idbPromise('cart', 'put', {
+        ...currentProduct,
+        purchaseQuantity: 1
       });
     }
   };
@@ -74,6 +85,8 @@ function Detail() {
       type: REMOVE_FROM_CART,
       _id: id
     });
+    // also remove the item from the indexedDB cart store
+    idbPromise('cart', 'delete', currentProduct);
 
     console.log(cart);
   }
