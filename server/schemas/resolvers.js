@@ -54,6 +54,10 @@ const resolvers = {
     },
 
     checkout: async(parent, args, context) => {
+      // this provides the base domain that the request came from (we're using apolloservers context to intercept the information about the headers on this request)
+      // locally, this would be http://localhost:3001 -> since graphQL is running on port:3001
+      const url = new URL(context.headers.referer).origin;
+
       // we pass our array of ids via args.products to create an instance of the Order model, which creates a purchaseDate(default: date.now) and the second paramter is the array of product id's which will be ObjectIds so mongoose can reference the Product models and build the full product from just the id.
 
       const order = new Order({ products: args.products });
@@ -65,7 +69,9 @@ const resolvers = {
         // create product id by accessing the product object from the products variable => contains fully expanded data from the Product model
         const product = await stripe.products.create({
           name: products[i].name,
-          description: products[i].description
+          description: products[i].description,
+          // we can include an image since we have access to the url where we are referring the users back to
+          images: [`${url}/images/${products[i].image}`]
         });
 
         // create price id using the product id
@@ -87,8 +93,8 @@ const resolvers = {
         payment_method_types: ['card'],
         line_items: line_items,
         mode: 'payment',
-        success_url: 'https://example.com/success?session_ID={CHECKOUT_SESSION_ID}',
-        cancel_url: 'https://example.com/cancel'
+        success_url: `${url}/success?session_ID={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${url}`
       });
 
       return { session: session.id };
