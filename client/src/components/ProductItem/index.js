@@ -19,10 +19,25 @@ function ProductItem(item) {
   } = item;
 
   const addToCart = () => {
-    dispatch({
-      type: ADD_TO_CART,
-      product: { ...item, purchaseQuantity: 1 }
-    });
+    // check to see if item is in cart
+    const itemInCart = cart.find(cartItem => cartItem._id === item._id);
+    
+    // if item exists, update cart quantity by passing in the item._id that we are clicking, and also add 1 to the item's current purchaseQuantity
+    if(itemInCart) {
+      dispatch({
+        type: UPDATE_CART_QUANTITY,
+        _id: item._id, 
+        purchaseQuantity: itemInCart.purchaseQuantity + 1
+      }) 
+      // else add item to card with purchaseQuantity of 1
+    } else {
+      dispatch({
+        type: ADD_TO_CART,
+        product: { ...item, purchaseQuantity: 1 }
+      });
+    }
+    
+   
   };
 
   return (

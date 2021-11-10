@@ -13,7 +13,7 @@ import Cart from "../components/Cart";
 function Detail() {
   const { id } = useParams();
   const [state, dispatch] = useStoreContext();
-  const { products } = state;
+  const { products, cart } = state;
   const { loading, data } = useQuery(QUERY_PRODUCTS);
 
   const [currentProduct, setCurrentProduct] = useState({});
@@ -36,38 +36,65 @@ function Detail() {
 
 
   const addToCart = () => {
-    dispatch({
-      type: ADD_TO_CART,
-      product: { ...currentProduct, purchaseQuantity: 1 }
-    });
+    // check if item is already in cart and call the appropraite action 
+    // can either use currentProduct._id or id from useParams as they will be the same, perhaps better to use id it's cleaner?
+    const itemInCart = cart.find(cartItem => cartItem._id === id);
+    if (itemInCart) {
+      dispatch({
+        type: UPDATE_CART_QUANTITY,
+        _id: id,
+        purchaseQuantity: itemInCart.purchaseQuantity + 1
+      })
+    } else {
+      dispatch({
+        type: ADD_TO_CART,
+        product: { ...currentProduct, purchaseQuantity: 1 }
+      });
+    }
   };
 
-  return (
-    <>
-      {currentProduct ? (
-        <div className="container my-1">
-          <Link to="/">← Back to Products</Link>
+  // removes all of those items from the cart 
+  const removeFromCart = () => {
+    // once again, can use id or currentProduct._id
+    dispatch({
+      type: REMOVE_FROM_CART,
+      _id: id
+    });
 
-          <h2>{currentProduct.name}</h2>
+    console.log(cart);
+  }
 
-          <p>{currentProduct.description}</p>
+return (
+  <>
+    {currentProduct ? (
+      <div className="container my-1">
+        <Link to="/">← Back to Products</Link>
 
-          <p>
-            <strong>Price:</strong>${currentProduct.price}{' '}
-            <button onClick={addToCart}>Add to Cart</button>
-            <button>Remove from Cart</button>
-          </p>
+        <h2>{currentProduct.name}</h2>
 
-          <img
-            src={`/images/${currentProduct.image}`}
-            alt={currentProduct.name}
-          />
-        </div>
-      ) : null}
-      {loading ? <img src={spinner} alt="loading" /> : null}
-      <Cart />
-    </>
-  );
+        <p>{currentProduct.description}</p>
+
+        <p>
+          <strong>Price:</strong>${currentProduct.price}{' '}
+          <button onClick={addToCart}>Add to Cart</button>
+          <button 
+            onClick={removeFromCart}
+            disabled={!cart.some(cartItem => cartItem._id === currentProduct._id)}
+          >
+            Remove from Cart
+          </button>
+        </p>
+
+        <img
+          src={`/images/${currentProduct.image}`}
+          alt={currentProduct.name}
+        />
+      </div>
+    ) : null}
+    {loading ? <img src={spinner} alt="loading" /> : null}
+    <Cart />
+  </>
+);
 }
 
 export default Detail;
