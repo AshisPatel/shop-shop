@@ -1,6 +1,7 @@
 import React from 'react';
 import { useStoreContext } from '../../utils/GlobalState';
 import { REMOVE_FROM_CART, UPDATE_CART_QUANTITY } from "../../utils/actions";
+import { idbPromise } from "../../utils/helpers";
 
 const CartItem =({ item }) => {
     const [state, dispatch] = useStoreContext();
@@ -10,8 +11,11 @@ const CartItem =({ item }) => {
             type: REMOVE_FROM_CART,
             _id: item._id
         });
+        // mimic functionality to manage indexedDB cart store
+        idbPromise('cart', 'delete', item);
     };
 
+    // mimic functionality to manage indexedDB cart store
     const handleChange = (e) => {
         const { value } = e.target;
 
@@ -20,12 +24,14 @@ const CartItem =({ item }) => {
                 type: REMOVE_FROM_CART,
                 _id: item._id
             });
+            idbPromise('cart', 'delete', item);
         } else {
             dispatch({
                 type: UPDATE_CART_QUANTITY,
                 _id: item._id,
                 purchaseQuantity: value
             });
+            idbPromise('cart', 'put', {...item, purchaseQuantity: value});
         }
     }
 
