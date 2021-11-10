@@ -7,6 +7,9 @@ import spinner from '../../assets/spinner.gif';
 
 import { useStoreContext } from '../../utils/GlobalState';
 import { UPDATE_PRODUCTS } from '../../utils/actions';
+
+import { idbPromise } from '../../utils/helpers';
+
 function ProductList() {
   const [state, dispatch] = useStoreContext();
   const { currentCategory, products } = state;
@@ -14,13 +17,30 @@ function ProductList() {
   const { loading, data } = useQuery(QUERY_PRODUCTS);
 
   useEffect(() => {
+    // store data in global state
     if(data) {
       dispatch({
         type: UPDATE_PRODUCTS,
         products: data.products
       });
+
+      // store all data in IndexedDB
+      data.products.forEach(product => {
+        // structured as store, method, object
+        idbPromise('products', 'put', product);
+      })
+      // if the user is not connected to the internet, the useQuery will never activate and therefore the loading parameter will never exist, so we can grab data from the indexedDB store instead ---> loading is falsey
+    } else if(!loading) {
+      idbPromise('products', 'get').then((products) => {
+        // grab data from promise and set it to the global state for products
+        dispatch({
+          type: UPDATE_PRODUCTS,
+          products: products
+        });
+      });
     }
-  }, [dispatch, data]);
+    
+  }, [dispatch, loading, data]);
 
   function filterProducts() {
     if(!currentCategory) {
