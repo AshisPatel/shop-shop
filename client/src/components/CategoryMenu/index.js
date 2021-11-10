@@ -30,7 +30,7 @@ function CategoryMenu() {
       });
       // check to see if the useQuery loading parameter exists, it will not if the user is offline and so we'll grab the data from the indexedDB store instead
     } else if (!loading) {
-      idbPromise('products', 'get').then(categoriesData => {
+      idbPromise('categories', 'get').then(categoriesData => {
         dispatch({
           type: UPDATE_CATEGORIES,
           categories: categoriesData
