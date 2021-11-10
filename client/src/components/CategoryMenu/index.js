@@ -3,6 +3,7 @@ import { useStoreContext } from "../../utils/GlobalState";
 import { useQuery } from '@apollo/client';
 import { QUERY_CATEGORIES } from '../../utils/queries';
 import { UPDATE_CATEGORIES, UPDATE_CURRENT_CATEGORY } from "../../utils/actions";
+import { idbPromise } from '../../utils/helpers';
 
 function CategoryMenu() {
 
@@ -11,7 +12,7 @@ function CategoryMenu() {
   // destructure the categories key from the global state as its the only one you needed 
   const { categories } = state;
   // useQuery will obtain our category data from GraphQL
-  const { data: categoryData } = useQuery(QUERY_CATEGORIES);
+  const { data: categoryData, loading } = useQuery(QUERY_CATEGORIES);
 
   // useEffect will add data to our global state on component mount, and update of categoryData, or when dispatch is invoked
   useEffect(() => {
@@ -23,9 +24,21 @@ function CategoryMenu() {
         type: UPDATE_CATEGORIES,
         categories: categoryData.categories
       });
+      // add category data to indexedDB store
+      categoryData.categories.forEach(category => {
+        idbPromise('categories', 'put', category);
+      });
+      // check to see if the useQuery loading parameter exists, it will not if the user is offline and so we'll grab the data from the indexedDB store instead
+    } else if (!loading) {
+      idbPromise('products', 'get').then(categoriesData => {
+        dispatch({
+          type: UPDATE_CATEGORIES,
+          categories: categoriesData
+        });
+      });
     }
     // why does this run on dispatch update?
-  }, [categoryData, dispatch]);
+  }, [categoryData, dispatch, loading]);
 
   const handleClick = (id) => {
     dispatch({
