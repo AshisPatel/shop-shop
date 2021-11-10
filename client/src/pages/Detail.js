@@ -10,6 +10,8 @@ import { UPDATE_PRODUCTS, REMOVE_FROM_CART, UPDATE_CART_QUANTITY, ADD_TO_CART } 
 
 import Cart from "../components/Cart";
 
+import { idbPromise } from "../utils/helpers";
+
 function Detail() {
   const { id } = useParams();
   const [state, dispatch] = useStoreContext();
@@ -31,8 +33,20 @@ function Detail() {
         type: UPDATE_PRODUCTS,
         products: data.products
       });
+      // store the products data to indexedDB
+      data.products.forEach(product => {
+        idbPromise('products', 'put', product);
+      });
+      // if the user is offline the loading parameter will not exist, and we'll need to populate our global state using indexedDB
+    } else if (!loading) {
+      idbPromise('products', 'get').then(indexedProducts => {
+        dispatch({
+          type: UPDATE_PRODUCTS,
+          products: indexedProducts
+        });
+      });
     }
-  }, [products, data, dispatch, id]);
+  }, [products, data, loading, dispatch, id]);
 
 
   const addToCart = () => {
