@@ -7,10 +7,17 @@ import { useStoreContext } from "../../utils/GlobalState";
 import { TOGGLE_CART, ADD_MULTIPLE_TO_CART } from "../../utils/actions";
 import { idbPromise } from '../../utils/helpers';
 
+import { QUERY_CHECKOUT } from "../../utils/queries";
+import { loadStripe } from '@stripe/stripe-js';
+import { useLazyQuery } from '@apollo/client';
+
+const stripePromise = loadStripe('pk_test_TYooMQauvdEDq54NiTphI7jx');
+
 const Cart = () => {
     const [state, dispatch] = useStoreContext();
-
     const { cart, cartOpen } = state;
+    // data will be queried and returned here but only when the getCheckout function is called rather than on componenet render like useQuery
+    const [getCheckout, { data }] = useLazyQuery(QUERY_CHECKOUT);
     // console.log(state);
     const toggleCart = () => {
         dispatch({
@@ -49,6 +56,30 @@ const Cart = () => {
         return sum.toFixed(2);
     }
 
+    const submitCheckout = () => {
+        // need to collect the productIds array to send our checkout query 
+        const productIds = [];
+        // add the id from the items in the cart, accounting for multiple quantities of items
+        cart.forEach(item => {
+            for (let i=0; i < item.purchaseQuantity; i++) {
+                productIds.push(item._id);
+            }
+        });
+        // make the query to get our session 
+        getCheckout({
+            variables: { products: productIds }
+        });
+    }
+
+    // this useEffect will check when the checkout Query completes and redirect the user to the generated stripe session from the id returned from our query
+    useEffect(() => {
+        if (data) {
+            stripePromise.then((res) => {
+                res.redirectToCheckout({ sessionId: data.checkout.session })
+            })
+        }
+    }, [data])
+
 
     if (!cartOpen) {
         return (
@@ -72,7 +103,7 @@ const Cart = () => {
                             <strong>Total: ${calculateTotal()}</strong>
                             {
                                 Auth.loggedIn() ?
-                                    <button>
+                                    <button onClick={submitCheckout}>
                                         Checkout
                                     </button>
                                     :
